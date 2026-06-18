@@ -1,0 +1,52 @@
+{
+  "name": "std/image",
+  "version": "0.1.0",
+  "license": "ISC",
+  "build": {
+    "native": {
+      "extraCopyPaths": [
+        "native_image.hpp"
+      ],
+      "macos": {
+        "sourceFiles": [
+          "native_image_apple.mm",
+          "native_image_encode_apple.mm",
+          "native_image_ops_apple.mm"
+        ],
+        "frameworks": [
+          "Foundation",
+          "CoreGraphics",
+          "ImageIO",
+          "UniformTypeIdentifiers"
+        ]
+      },
+      "iosSimulator": {
+        "sourceFiles": [
+          "native_image_apple.mm",
+          "native_image_encode_apple.mm",
+          "native_image_ops_apple.mm"
+        ],
+        "frameworks": [
+          "Foundation",
+          "CoreGraphics",
+          "ImageIO",
+          "UniformTypeIdentifiers"
+        ]
+      },
+      "iosDevice": {
+        "sourceFiles": [
+          "native_image_apple.mm",
+          "native_image_encode_apple.mm",
+          "native_image_ops_apple.mm"
+        ],
+        "frameworks": [
+          "Foundation",
+          "CoreGraphics",
+          "ImageIO",
+          "UniformTypeIdentifiers"
+        ]
+      }
+    }
+  },
+  "dependencies": {}
+}
