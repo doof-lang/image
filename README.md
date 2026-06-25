@@ -10,6 +10,11 @@ Images have a stable in-memory representation:
 - premultiplied alpha
 - top-left origin
 
+## Documentation
+
+- [Guide and API reference](docs/API.md) explains pixel representation, alpha conversion, images versus views, encoding, resampling, platform scope, and errors.
+- Tests can be run with `doof test image`.
+
 ## Usage
 
 ```doof
