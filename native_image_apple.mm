@@ -28,9 +28,7 @@ enum ErrorKind : int32_t {
 
 template <typename T>
 doof::Result<T, std::shared_ptr<NativeImageError>> failure(ErrorKind kind, const std::string& message) {
-    return doof::Result<T, std::shared_ptr<NativeImageError>>::failure(
-        std::make_shared<NativeImageError>(static_cast<int32_t>(kind), message)
-    );
+    return doof::Failure<std::shared_ptr<NativeImageError>>{std::make_shared<NativeImageError>(static_cast<int32_t>(kind), message)};
 }
 
 bool checkedByteCount(int32_t width, int32_t height, size_t& byteCount) {
@@ -165,9 +163,7 @@ doof::Result<std::shared_ptr<NativeImage>, std::shared_ptr<NativeImageError>> Na
         return failure<std::shared_ptr<NativeImage>>(InvalidArgument, "image dimensions must be positive and representable");
     }
     try {
-        return doof::Result<std::shared_ptr<NativeImage>, std::shared_ptr<NativeImageError>>::success(
-            std::shared_ptr<NativeImage>(new NativeImage(width, height, std::vector<uint8_t>(byteCount, 0)))
-        );
+        return doof::Success<std::shared_ptr<NativeImage>>{std::shared_ptr<NativeImage>(new NativeImage(width, height, std::vector<uint8_t>(byteCount, 0)))};
     } catch (const std::bad_alloc&) {
         return failure<std::shared_ptr<NativeImage>>(InvalidArgument, "not enough memory to create the image");
     }
@@ -201,9 +197,7 @@ doof::Result<std::shared_ptr<NativeImage>, std::shared_ptr<NativeImageError>> Na
                 }
             }
         }
-        return doof::Result<std::shared_ptr<NativeImage>, std::shared_ptr<NativeImageError>>::success(
-            std::shared_ptr<NativeImage>(new NativeImage(width, height, std::move(pixels)))
-        );
+        return doof::Success<std::shared_ptr<NativeImage>>{std::shared_ptr<NativeImage>(new NativeImage(width, height, std::move(pixels)))};
     } catch (const std::bad_alloc&) {
         return failure<std::shared_ptr<NativeImage>>(InvalidData, "not enough memory to copy the pixel payload");
     }
@@ -290,10 +284,7 @@ doof::Result<std::shared_ptr<std::vector<uint8_t>>, std::shared_ptr<NativeImageE
                 }
             }
         }
-        return doof::Result<
-            std::shared_ptr<std::vector<uint8_t>>,
-            std::shared_ptr<NativeImageError>
-        >::success(output);
+        return doof::Success<std::shared_ptr<std::vector<uint8_t>>>{output};
     } catch (const std::bad_alloc&) {
         return failure<std::shared_ptr<std::vector<uint8_t>>>(InvalidData, "not enough memory to extract image pixels");
     }

@@ -22,18 +22,14 @@ enum ErrorKind : int32_t {
 
 template <typename T>
 doof::Result<T, std::shared_ptr<NativeImageError>> failure(ErrorKind kind, const std::string& message) {
-    return doof::Result<T, std::shared_ptr<NativeImageError>>::failure(
-        std::make_shared<NativeImageError>(static_cast<int32_t>(kind), message)
-    );
+    return doof::Failure<std::shared_ptr<NativeImageError>>{std::make_shared<NativeImageError>(static_cast<int32_t>(kind), message)};
 }
 
 doof::Result<void, std::shared_ptr<NativeImageError>> voidFailure(
     ErrorKind kind,
     const std::string& message
 ) {
-    return doof::Result<void, std::shared_ptr<NativeImageError>>::failure(
-        std::make_shared<NativeImageError>(static_cast<int32_t>(kind), message)
-    );
+    return doof::Failure<std::shared_ptr<NativeImageError>>{std::make_shared<NativeImageError>(static_cast<int32_t>(kind), message)};
 }
 
 CFStringRef formatType(int32_t format) {
@@ -115,10 +111,10 @@ doof::Result<void, std::shared_ptr<NativeImageError>> NativeImage::saveFile(
             return voidFailure(UnsupportedFormat, "the requested image encoder is not available on this OS");
         }
         auto extracted = extract(x, y, width, height, 0);
-        if (extracted.isFailure()) {
-            return doof::Result<void, std::shared_ptr<NativeImageError>>::failure(extracted.error());
+        if (doof::is_failure(extracted)) {
+            return doof::Failure<std::shared_ptr<NativeImageError>>{doof::failure_error(extracted)};
         }
-        const auto& bytes = *extracted.value();
+        const auto& bytes = *doof::success_value(extracted);
         CGImageRef image = createCGImage(bytes, width, height);
         if (image == nullptr) {
             return voidFailure(EncodeFailed, "could not create an image for encoding");
@@ -145,7 +141,7 @@ doof::Result<void, std::shared_ptr<NativeImageError>> NativeImage::saveFile(
         if (!ok) {
             return voidFailure(IoFailed, "ImageIO could not write the encoded image file");
         }
-        return doof::Result<void, std::shared_ptr<NativeImageError>>::success();
+        return doof::Success<void>{};
     }
 }
 
@@ -163,13 +159,10 @@ doof::Result<std::shared_ptr<std::vector<uint8_t>>, std::shared_ptr<NativeImageE
             return failure<std::shared_ptr<std::vector<uint8_t>>>(UnsupportedFormat, "the requested image encoder is not available on this OS");
         }
         auto extracted = extract(x, y, width, height, 0);
-        if (extracted.isFailure()) {
-            return doof::Result<
-                std::shared_ptr<std::vector<uint8_t>>,
-                std::shared_ptr<NativeImageError>
-            >::failure(extracted.error());
+        if (doof::is_failure(extracted)) {
+            return doof::Failure<std::shared_ptr<NativeImageError>>{doof::failure_error(extracted)};
         }
-        const auto& bytes = *extracted.value();
+        const auto& bytes = *doof::success_value(extracted);
         CGImageRef image = createCGImage(bytes, width, height);
         if (image == nullptr) {
             return failure<std::shared_ptr<std::vector<uint8_t>>>(EncodeFailed, "could not create an image for encoding");
@@ -197,10 +190,7 @@ doof::Result<std::shared_ptr<std::vector<uint8_t>>, std::shared_ptr<NativeImageE
             if (data.length > 0) {
                 std::memcpy(output->data(), data.bytes, data.length);
             }
-            return doof::Result<
-                std::shared_ptr<std::vector<uint8_t>>,
-                std::shared_ptr<NativeImageError>
-            >::success(output);
+            return doof::Success<std::shared_ptr<std::vector<uint8_t>>>{output};
         } catch (const std::bad_alloc&) {
             return failure<std::shared_ptr<std::vector<uint8_t>>>(EncodeFailed, "not enough memory to return the encoded image blob");
         }

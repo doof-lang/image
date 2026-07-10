@@ -22,9 +22,7 @@ enum ErrorKind : int32_t {
 
 template <typename T>
 doof::Result<T, std::shared_ptr<NativeImageError>> failure(ErrorKind kind, const std::string& message) {
-    return doof::Result<T, std::shared_ptr<NativeImageError>>::failure(
-        std::make_shared<NativeImageError>(static_cast<int32_t>(kind), message)
-    );
+    return doof::Failure<std::shared_ptr<NativeImageError>>{std::make_shared<NativeImageError>(static_cast<int32_t>(kind), message)};
 }
 
 bool checkedByteCount(int32_t width, int32_t height, size_t& byteCount) {
@@ -89,10 +87,10 @@ doof::Result<std::shared_ptr<NativeImage>, std::shared_ptr<NativeImageError>> Na
     }
 
     auto extracted = extract(x, y, width, height, 0);
-    if (extracted.isFailure()) {
-        return doof::Result<std::shared_ptr<NativeImage>, std::shared_ptr<NativeImageError>>::failure(extracted.error());
+    if (doof::is_failure(extracted)) {
+        return doof::Failure<std::shared_ptr<NativeImageError>>{doof::failure_error(extracted)};
     }
-    CGImageRef sourceImage = createCGImage(*extracted.value(), width, height);
+    CGImageRef sourceImage = createCGImage(*doof::success_value(extracted), width, height);
     if (sourceImage == nullptr) {
         return failure<std::shared_ptr<NativeImage>>(InvalidData, "could not create the resize source image");
     }
@@ -127,9 +125,7 @@ doof::Result<std::shared_ptr<NativeImage>, std::shared_ptr<NativeImageError>> Na
         );
         CGContextRelease(context);
         CGImageRelease(sourceImage);
-        return doof::Result<std::shared_ptr<NativeImage>, std::shared_ptr<NativeImageError>>::success(
-            std::shared_ptr<NativeImage>(new NativeImage(outputWidth, outputHeight, std::move(output)))
-        );
+        return doof::Success<std::shared_ptr<NativeImage>>{std::shared_ptr<NativeImage>(new NativeImage(outputWidth, outputHeight, std::move(output)))};
     } catch (const std::bad_alloc&) {
         CGImageRelease(sourceImage);
         return failure<std::shared_ptr<NativeImage>>(InvalidData, "not enough memory to resize the image");
