@@ -1,29 +1,29 @@
 import class NativeImageError from "native_image.hpp" as doof_image::NativeImageError {
-  kind(): int
-  message(): string
+  isolated kind(): int
+  isolated message(): string
 }
 
 import class NativeImage from "native_image.hpp" as doof_image::NativeImage {
-  static create(width: int, height: int): Result<NativeImage, NativeImageError>
-  static fromPixels(
+  isolated static create(width: int, height: int): Result<NativeImage, NativeImageError>
+  isolated static fromPixels(
     width: int,
     height: int,
     bytes: readonly byte[],
     alphaMode: int,
   ): Result<NativeImage, NativeImageError>
-  static loadFile(path: string): Result<NativeImage, NativeImageError>
-  static loadBlob(bytes: readonly byte[]): Result<NativeImage, NativeImageError>
+  isolated static loadFile(path: string): Result<NativeImage, NativeImageError>
+  isolated static loadBlob(bytes: readonly byte[]): Result<NativeImage, NativeImageError>
 
-  width(): int
-  height(): int
-  extract(
+  isolated width(): int
+  isolated height(): int
+  isolated extract(
     x: int,
     y: int,
     width: int,
     height: int,
     alphaMode: int,
   ): Result<readonly byte[], NativeImageError>
-  resize(
+  isolated resize(
     x: int,
     y: int,
     width: int,
@@ -32,7 +32,7 @@ import class NativeImage from "native_image.hpp" as doof_image::NativeImage {
     outputHeight: int,
     resampling: int,
   ): Result<NativeImage, NativeImageError>
-  saveFile(
+  isolated saveFile(
     path: string,
     format: int,
     quality: double,
@@ -41,7 +41,7 @@ import class NativeImage from "native_image.hpp" as doof_image::NativeImage {
     width: int,
     height: int,
   ): Result<void, NativeImageError>
-  saveBlob(
+  isolated saveBlob(
     format: int,
     quality: double,
     x: int,
@@ -49,7 +49,7 @@ import class NativeImage from "native_image.hpp" as doof_image::NativeImage {
     width: int,
     height: int,
   ): Result<readonly byte[], NativeImageError>
-  blit(
+  isolated blit(
     source: NativeImage,
     sourceX: int,
     sourceY: int,
