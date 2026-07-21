@@ -16,7 +16,7 @@ function pixels(width: int, height: int, bytes: readonly byte[]): PixelBytes {
   return PixelBytes(width, height, bytes)
 }
 
-function assertBytes(actual: readonly byte[], expected: readonly byte[]): void {
+function assertBytes(actual: readonly byte[], expected: readonly byte[]): none {
   assert(actual.length == expected.length, "expected byte lengths to match")
   for index of 0..<actual.length {
     assert(
@@ -31,11 +31,11 @@ function failureKind<T>(result: Result<T, ImageError>): ImageErrorKind {
   panic("expected image operation to fail")
 }
 
-function check(value: bool): void {
+function check(value: bool): none {
   assert(value, "image test condition failed")
 }
 
-export function testPixelValidationAndTransparentCreate(): void {
+export function testPixelValidationAndTransparentCreate(): none {
   image := try! Image.create(2, 2)
   check(image.width() == 2)
   check(image.height() == 2)
@@ -49,7 +49,7 @@ export function testPixelValidationAndTransparentCreate(): void {
   assertBytes(extracted.bytes, expected)
 }
 
-export function testImageCopiesPixelPayloadAndExtractionIsSnapshot(): void {
+export function testImageCopiesPixelPayloadAndExtractionIsSnapshot(): none {
   original: readonly byte[] := [255, 0, 0, 255]
   image := try! Image.fromPixelBytes(pixels(1, 1, original))
   snapshot := try! image.pixelBytes()
@@ -62,7 +62,7 @@ export function testImageCopiesPixelPayloadAndExtractionIsSnapshot(): void {
   assertBytes((try! image.pixelBytes()).bytes, blueBytes)
 }
 
-export function testViewsAreStrictNestedAndWriteThrough(): void {
+export function testViewsAreStrictNestedAndWriteThrough(): none {
   baseBytes: readonly byte[] := [
     255, 0, 0, 255,
     0, 255, 0, 255,
@@ -92,7 +92,7 @@ export function testViewsAreStrictNestedAndWriteThrough(): void {
   check(failureKind(image.view(0, 0, 0, 1)) == .InvalidArgument)
 }
 
-export function testCopyClipsAndOverlappingCopyUsesSnapshot(): void {
+export function testCopyClipsAndOverlappingCopyUsesSnapshot(): none {
   sourceBytes: readonly byte[] := [
     255, 0, 0, 255,
     0, 255, 0, 255,
@@ -122,7 +122,7 @@ export function testCopyClipsAndOverlappingCopyUsesSnapshot(): void {
   assertBytes((try! overlap.pixelBytes()).bytes, expectedOverlap)
 }
 
-export function testPremultipliedSourceOver(): void {
+export function testPremultipliedSourceOver(): none {
   destinationBytes: readonly byte[] := [0, 0, 100, 128]
   sourceBytes: readonly byte[] := [100, 0, 0, 128]
   destination := try! Image.fromPixelBytes(pixels(1, 1, destinationBytes))
@@ -132,7 +132,7 @@ export function testPremultipliedSourceOver(): void {
   assertBytes((try! destination.pixelBytes()).bytes, expected)
 }
 
-export function testStraightAlphaPixelBoundary(): void {
+export function testStraightAlphaPixelBoundary(): none {
   straightBytes: readonly byte[] := [200, 100, 50, 128]
   straight := PixelBytes(1, 1, straightBytes, .Straight)
   check(straight.alphaMode == PixelAlphaMode.Straight)
@@ -145,7 +145,7 @@ export function testStraightAlphaPixelBoundary(): void {
   assertBytes(roundTrip.bytes, requantizedStraight)
 }
 
-export function testResizeCreatesIndependentImage(): void {
+export function testResizeCreatesIndependentImage(): none {
   sourceBytes: readonly byte[] := [
     255, 0, 0, 255,
     0, 0, 255, 255,
@@ -164,7 +164,7 @@ export function testResizeCreatesIndependentImage(): void {
   check(failureKind(source.resize(0, 2)) == .InvalidArgument)
 }
 
-export function testLosslessBlobRoundTripsAndViewEncoding(): void {
+export function testLosslessBlobRoundTripsAndViewEncoding(): none {
   sourceBytes: readonly byte[] := [
     255, 0, 0, 255,
     0, 255, 0, 255,
@@ -186,7 +186,7 @@ export function testLosslessBlobRoundTripsAndViewEncoding(): void {
   assertBytes((try! cropped.pixelBytes()).bytes, green)
 }
 
-function checkOptionalEncoder(image: Image, format: ImageFormat): void {
+function checkOptionalEncoder(image: Image, format: ImageFormat): none {
   case image.saveBlob(format) {
     success: Success -> {
       decoded := try! Image.loadBlob(success.value)
@@ -198,7 +198,7 @@ function checkOptionalEncoder(image: Image, format: ImageFormat): void {
   }
 }
 
-export function testCuratedLossyAndGifEncoders(): void {
+export function testCuratedLossyAndGifEncoders(): none {
   sourceBytes: readonly byte[] := [
     255, 0, 0, 255,
     0, 255, 0, 255,
@@ -211,7 +211,7 @@ export function testCuratedLossyAndGifEncoders(): void {
   checkOptionalEncoder(image, .Gif)
 }
 
-export function testExplicitFormatFileRoundTrip(): void {
+export function testExplicitFormatFileRoundTrip(): none {
   sourceBytes: readonly byte[] := [10, 20, 30, 255]
   image := try! Image.fromPixelBytes(pixels(1, 1, sourceBytes))
   path := join([tempDirectory(), "std-image-explicit-format.data"])
@@ -221,7 +221,7 @@ export function testExplicitFormatFileRoundTrip(): void {
   try! remove(path)
 }
 
-export function testEncodingAndDecodeErrors(): void {
+export function testEncodingAndDecodeErrors(): none {
   image := try! Image.create(1, 1)
   invalidOptions := ImageEncodeOptions { quality: 1.1 }
   check(failureKind(image.saveBlob(.Png, invalidOptions)) == .InvalidArgument)
@@ -232,8 +232,8 @@ export function testEncodingAndDecodeErrors(): void {
   check(failureKind(image.saveFile("/definitely/not/a/real/output.png", .Png)) == .IoFailed)
 }
 
-export function testDecodeAppliesOrientationMetadata(): void {
-  // A 2x1 TIFF containing red then blue, tagged EXIF orientation 6 (90° clockwise).
+export function testDecodeAppliesOrientationMetadata(): none {
+  // A 2x1 TIFF containing red then blue, tagged EXIF orientation 6 (90Â° clockwise).
   encoded := try! decodeBase64(
     "TU0AKgAAABD/AAD/AAD//wAPAQAAAwAAAAEAAgAAAQEAAwAAAAEAAQAAAQIAAwAAAAQAAADKAQMAAwAAAAEAAQAAAQYAAwAAAAEAAgAAAQoAAwAAAAEAAQAAAREABAAAAAEAAAAIARIAAwAAAAEABgAAARUAAwAAAAEABAAAARYAAwAAAAEAAQAAARcABAAAAAEAAAAIARwAAwAAAAEAAQAAASgAAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAQAAADSAAAAAAAIAAgACAAIAAEAAQABAAE="
   )
@@ -246,7 +246,7 @@ export function testDecodeAppliesOrientationMetadata(): void {
   assertBytes((try! image.pixelBytes()).bytes, expected)
 }
 
-export function testVerticalPngRoundTripPreservesTopLeftRows(): void {
+export function testVerticalPngRoundTripPreservesTopLeftRows(): none {
   sourceBytes: readonly byte[] := [
     255, 0, 0, 255,
     0, 0, 255, 255,

@@ -40,7 +40,7 @@ import class NativeImage from "native_image.hpp" as doof_image::NativeImage {
     y: int,
     width: int,
     height: int,
-  ): Result<void, NativeImageError>
+  ): Result<none, NativeImageError>
   isolated saveBlob(
     format: int,
     quality: double,
@@ -62,7 +62,7 @@ import class NativeImage from "native_image.hpp" as doof_image::NativeImage {
     clipWidth: int,
     clipHeight: int,
     sourceOver: bool,
-  ): void
+  ): none
 }
 
 export { NativeImage, NativeImageError }

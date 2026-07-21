@@ -28,7 +28,7 @@ function mapNativeBytes(result: Result<readonly byte[], NativeImageError>): Resu
   }
 }
 
-function mapNativeVoid(result: Result<void, NativeImageError>): Result<void, ImageError> {
+function mapNativeVoid(result: Result<none, NativeImageError>): Result<none, ImageError> {
   return case result {
     _: Success -> Success {},
     failure: Failure -> Failure { error: mapNativeError(failure.error) },
@@ -60,7 +60,7 @@ function blit(
   x: int,
   y: int,
   sourceOver: bool,
-): void {
+): none {
   sourceRect := sourceRegion(source)
   destination.native.blit(
     sourceRect.native,
@@ -130,7 +130,7 @@ export class Image {
     path: string,
     format: ImageFormat,
     options: ImageEncodeOptions = ImageEncodeOptions(),
-  ): Result<void, ImageError> {
+  ): Result<none, ImageError> {
     quality := validateOptions(options) else error { return Failure { error: error } }
     return mapNativeVoid(native.saveFile(path, format.value, quality, 0, 0, width(), height()))
   }
@@ -143,11 +143,11 @@ export class Image {
     return mapNativeBytes(native.saveBlob(format.value, quality, 0, 0, width(), height()))
   }
 
-  copyFrom(source: Image | ImageView, x: int, y: int): void {
+  copyFrom(source: Image | ImageView, x: int, y: int): none {
     blit(Region { native, x: 0, y: 0, width: width(), height: height() }, source, x, y, false)
   }
 
-  sourceOver(source: Image | ImageView, x: int, y: int): void {
+  sourceOver(source: Image | ImageView, x: int, y: int): none {
     blit(Region { native, x: 0, y: 0, width: width(), height: height() }, source, x, y, true)
   }
 }
@@ -218,7 +218,7 @@ export class ImageView {
     path: string,
     format: ImageFormat,
     options: ImageEncodeOptions = ImageEncodeOptions(),
-  ): Result<void, ImageError> {
+  ): Result<none, ImageError> {
     quality := validateOptions(options) else error { return Failure { error: error } }
     return mapNativeVoid(image.native.saveFile(path, format.value, quality, x, y, viewWidth, viewHeight))
   }
@@ -231,7 +231,7 @@ export class ImageView {
     return mapNativeBytes(image.native.saveBlob(format.value, quality, x, y, viewWidth, viewHeight))
   }
 
-  copyFrom(source: Image | ImageView, x: int, y: int): void {
+  copyFrom(source: Image | ImageView, x: int, y: int): none {
     blit(
       Region { native: image.native, x: this.x, y: this.y, width: viewWidth, height: viewHeight },
       source,
@@ -241,7 +241,7 @@ export class ImageView {
     )
   }
 
-  sourceOver(source: Image | ImageView, x: int, y: int): void {
+  sourceOver(source: Image | ImageView, x: int, y: int): none {
     blit(
       Region { native: image.native, x: this.x, y: this.y, width: viewWidth, height: viewHeight },
       source,
