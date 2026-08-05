@@ -45,6 +45,16 @@
           "ImageIO",
           "UniformTypeIdentifiers"
         ]
+      },
+      "windows": {
+        "sourceFiles": [
+          "native_image_windows.cpp"
+        ],
+        "linkLibraries": [
+          "ole32",
+          "oleaut32",
+          "windowscodecs"
+        ]
       }
     }
   },

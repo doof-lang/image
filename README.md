@@ -1,6 +1,6 @@
 # std/image
 
-Mutable raster images, immutable pixel payloads, non-copying image views, encoding, compositing, and resampling. The initial backend is native to macOS and iOS and uses CoreGraphics and ImageIO.
+Mutable raster images, immutable pixel payloads, non-copying image views, encoding, compositing, and resampling. Native backends use CoreGraphics and ImageIO on Apple platforms and Windows Imaging Component (WIC) on Windows.
 
 Images have a stable in-memory representation:
 
@@ -76,7 +76,7 @@ Creation validates positive dimensions, byte-count overflow, and an exact `width
 | `copyFrom(source, x, y)` | Replace pixels with an unscaled source image or view. |
 | `sourceOver(source, x, y)` | Composite an unscaled source using premultiplied source-over. |
 
-Decoding applies image orientation metadata and converts source colour data and alpha into the canonical representation. Encoded formats with straight alpha need no load option: ImageIO performs the premultiplication while decoding.
+Decoding applies image orientation metadata and converts source colour data and alpha into the canonical representation. Encoded formats with straight alpha need no load option: the native backend performs the premultiplication while decoding.
 
 ### `ImageView`
 
@@ -88,9 +88,9 @@ Blits are clipped to the destination image or view, so negative destination coor
 
 ## Resampling and encoding
 
-`ImageResampling` provides `Nearest`, `Linear`, and `HighQuality`. CoreGraphics supplies the corresponding platform-native interpolation. Resizing never mutates its source.
+`ImageResampling` provides `Nearest`, `Linear`, and `HighQuality`. The native backend supplies the corresponding platform-native interpolation. Resizing never mutates its source.
 
-`ImageFormat` provides `Png`, `Jpeg`, `Heic`, `Tiff`, and single-frame `Gif`. File extensions are ignored; callers always select the output format explicitly. If an ImageIO encoder such as HEIC is unavailable on the current OS, encoding returns `ImageErrorKind.UnsupportedFormat`.
+`ImageFormat` provides `Png`, `Jpeg`, `Heic`, `Tiff`, and single-frame `Gif`. File extensions are ignored; callers always select the output format explicitly. If a native encoder such as HEIC is unavailable on the current OS, encoding returns `ImageErrorKind.UnsupportedFormat`.
 
 `ImageEncodeOptions` has a `quality` field defaulting to `0.9`. Values must be between `0.0` and `1.0`. Quality is applied to JPEG and HEIC and ignored by lossless encoders.
 
@@ -100,4 +100,4 @@ Fallible operations return `Result<..., ImageError>`. `ImageError` contains a re
 
 ## Platform and scope
 
-The v1 implementation supports macOS, iOS Simulator, and iOS Device. It does not currently provide a non-Apple backend, animated image access, scaling blits, colour-profile preservation, alternate channel depths/layouts, or direct mutable access to image storage.
+The v1 implementation supports macOS, iOS Simulator, iOS Device, and Windows. It does not currently provide animated image access, scaling blits, colour-profile preservation, alternate channel depths/layouts, or direct mutable access to image storage.

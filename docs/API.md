@@ -1,8 +1,9 @@
 # std/image Guide
 
 `std/image` provides mutable raster images, immutable pixel snapshots,
-non-copying views, encoding, compositing, and resizing. The initial backend is
-Apple-native through CoreGraphics and ImageIO.
+non-copying views, encoding, compositing, and resizing. Native backends use
+CoreGraphics and ImageIO on Apple platforms and Windows Imaging Component (WIC)
+on Windows.
 
 ## Pixel Model
 
@@ -42,8 +43,8 @@ by lossless formats.
 
 ## Platform Scope
 
-The v1 backend supports macOS, iOS Simulator, and iOS Device. It does not yet
-support non-Apple backends, animated images, scaling blits, color-profile
+The v1 backend supports macOS, iOS Simulator, iOS Device, and Windows. It does
+not yet support animated images, scaling blits, color-profile
 preservation, alternate channel depths/layouts, or direct mutable pixel access.
 
 ## API Map
