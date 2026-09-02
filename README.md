@@ -1,6 +1,6 @@
 # std/image
 
-Mutable raster images, immutable pixel payloads, non-copying image views, encoding, compositing, and resampling. Native backends use CoreGraphics and ImageIO on Apple platforms and Windows Imaging Component (WIC) on Windows.
+Mutable raster images, immutable pixel payloads, non-copying image views, encoding, compositing, and resampling. Native backends use CoreGraphics and ImageIO on Apple platforms and Windows Imaging Component (WIC) on Windows. A pinned libwebp backend provides WebP encoding on every supported platform.
 
 Images have a stable in-memory representation:
 
@@ -90,9 +90,9 @@ Blits are clipped to the destination image or view, so negative destination coor
 
 `ImageResampling` provides `Nearest`, `Linear`, and `HighQuality`. The native backend supplies the corresponding platform-native interpolation. Resizing never mutates its source.
 
-`ImageFormat` provides `Png`, `Jpeg`, `Heic`, `Tiff`, and single-frame `Gif`. File extensions are ignored; callers always select the output format explicitly. If a native encoder such as HEIC is unavailable on the current OS, encoding returns `ImageErrorKind.UnsupportedFormat`.
+`ImageFormat` provides `Png`, `Jpeg`, `Heic`, `Tiff`, single-frame `Gif`, and single-frame `WebP`. File extensions are ignored; callers always select the output format explicitly. WebP encoding is always available. If a native encoder such as HEIC is unavailable on the current OS, encoding returns `ImageErrorKind.UnsupportedFormat`.
 
-`ImageEncodeOptions` has a `quality` field defaulting to `0.9`. Values must be between `0.0` and `1.0`. Quality is applied to JPEG and HEIC and ignored by lossless encoders.
+`ImageEncodeOptions` has a `quality` field defaulting to `0.9` and a `lossless` field defaulting to `false`. Quality values must be between `0.0` and `1.0`; quality applies to JPEG, HEIC, and lossy WebP. `lossless` selects lossless WebP encoding and is ignored by other formats. Quality is ignored for lossless WebP.
 
 ## Errors
 

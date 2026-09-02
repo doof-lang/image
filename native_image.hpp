@@ -62,6 +62,7 @@ public:
         const std::string& path,
         int32_t format,
         double quality,
+        bool lossless,
         int32_t x,
         int32_t y,
         int32_t width,
@@ -70,6 +71,7 @@ public:
     doof::Result<std::shared_ptr<std::vector<uint8_t>>, std::shared_ptr<NativeImageError>> saveBlob(
         int32_t format,
         double quality,
+        bool lossless,
         int32_t x,
         int32_t y,
         int32_t width,

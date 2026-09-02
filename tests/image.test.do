@@ -211,6 +211,29 @@ export function testCuratedLossyAndGifEncoders(): none {
   checkOptionalEncoder(image, .Gif)
 }
 
+export function testWebPEncodingAndLosslessRoundTrip(): none {
+  sourceBytes: readonly byte[] := [
+    255, 0, 0, 255,
+    64, 32, 16, 128,
+  ]
+  image := try! Image.fromPixelBytes(pixels(2, 1, sourceBytes))
+
+  lossy := try! image.saveBlob(.WebP, ImageEncodeOptions { quality: 0.8 })
+  check(lossy.length >= 12)
+  signature: readonly byte[] := [82, 73, 70, 70, 87, 69, 66, 80]
+  actualSignature: readonly byte[] := [
+    lossy[0], lossy[1], lossy[2], lossy[3],
+    lossy[8], lossy[9], lossy[10], lossy[11],
+  ]
+  assertBytes(actualSignature, signature)
+  lossyRoundTrip := try! Image.loadBlob(lossy)
+  check(lossyRoundTrip.width() == 2 && lossyRoundTrip.height() == 1)
+
+  lossless := try! image.saveBlob(.WebP, ImageEncodeOptions { lossless: true })
+  losslessRoundTrip := try! Image.loadBlob(lossless)
+  assertBytes((try! losslessRoundTrip.pixelBytes()).bytes, sourceBytes)
+}
+
 export function testExplicitFormatFileRoundTrip(): none {
   sourceBytes: readonly byte[] := [10, 20, 30, 255]
   image := try! Image.fromPixelBytes(pixels(1, 1, sourceBytes))
@@ -219,6 +242,12 @@ export function testExplicitFormatFileRoundTrip(): none {
   loaded := try! Image.loadFile(path)
   assertBytes((try! loaded.pixelBytes()).bytes, sourceBytes)
   try! remove(path)
+
+  webpPath := join([tempDirectory(), "std-image-explicit-webp.data"])
+  try! image.saveFile(webpPath, .WebP, ImageEncodeOptions { lossless: true })
+  loadedWebP := try! Image.loadFile(webpPath)
+  assertBytes((try! loadedWebP.pixelBytes()).bytes, sourceBytes)
+  try! remove(webpPath)
 }
 
 export function testEncodingAndDecodeErrors(): none {

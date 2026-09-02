@@ -4,6 +4,7 @@ export enum ImageFormat {
   Heic = 2,
   Tiff = 3,
   Gif = 4,
+  WebP = 5,
 }
 
 export enum ImageResampling {
@@ -34,4 +35,5 @@ export class ImageError {
 
 export class ImageEncodeOptions {
   readonly quality: double = 0.9
+  readonly lossless: bool = false
 }

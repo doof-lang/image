@@ -36,6 +36,7 @@ import class NativeImage from "native_image.hpp" as doof_image::NativeImage {
     path: string,
     format: int,
     quality: double,
+    lossless: bool,
     x: int,
     y: int,
     width: int,
@@ -44,6 +45,7 @@ import class NativeImage from "native_image.hpp" as doof_image::NativeImage {
   isolated saveBlob(
     format: int,
     quality: double,
+    lossless: bool,
     x: int,
     y: int,
     width: int,

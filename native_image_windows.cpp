@@ -1,4 +1,5 @@
 #include "native_image.hpp"
+#include "native_webp.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -10,6 +11,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <limits>
 #include <new>
@@ -624,6 +626,7 @@ doof::Result<void, std::shared_ptr<NativeImageError>> NativeImage::saveFile(
     const std::string& path,
     int32_t format,
     double quality,
+    bool lossless,
     int32_t x,
     int32_t y,
     int32_t width,
@@ -632,13 +635,34 @@ doof::Result<void, std::shared_ptr<NativeImageError>> NativeImage::saveFile(
     if (path.empty()) {
         return voidFailure(InvalidArgument, "image path must not be empty");
     }
-    const GUID* container = containerFormat(format);
-    if (container == nullptr) {
-        return voidFailure(UnsupportedFormat, "the requested image encoder is not available on this OS");
-    }
     std::wstring widePath;
     if (!utf8Path(path, widePath)) {
         return voidFailure(InvalidArgument, "image path is not valid UTF-8");
+    }
+    if (format == 5) {
+        auto extracted = extract(x, y, width, height, 0);
+        if (doof::is_failure(extracted)) {
+            return doof::Failure<std::shared_ptr<NativeImageError>>{doof::failure_error(extracted)};
+        }
+        std::shared_ptr<std::vector<uint8_t>> encoded;
+        std::string error;
+        if (!encodeWebP(*doof::success_value(extracted), width, height, quality, lossless, encoded, error)) {
+            return voidFailure(EncodeFailed, error);
+        }
+        FILE* file = _wfopen(widePath.c_str(), L"wb");
+        if (file == nullptr) {
+            return voidFailure(IoFailed, "could not create the WebP image output file");
+        }
+        const bool written = std::fwrite(encoded->data(), 1, encoded->size(), file) == encoded->size();
+        const bool closed = std::fclose(file) == 0;
+        if (!written || !closed) {
+            return voidFailure(IoFailed, "could not write the encoded WebP image file");
+        }
+        return doof::Success<void>{};
+    }
+    const GUID* container = containerFormat(format);
+    if (container == nullptr) {
+        return voidFailure(UnsupportedFormat, "the requested image encoder is not available on this OS");
     }
     auto extracted = extract(x, y, width, height, 0);
     if (doof::is_failure(extracted)) {
@@ -671,11 +695,24 @@ doof::Result<void, std::shared_ptr<NativeImageError>> NativeImage::saveFile(
 doof::Result<std::shared_ptr<std::vector<uint8_t>>, std::shared_ptr<NativeImageError>> NativeImage::saveBlob(
     int32_t format,
     double quality,
+    bool lossless,
     int32_t x,
     int32_t y,
     int32_t width,
     int32_t height
 ) const {
+    if (format == 5) {
+        auto extracted = extract(x, y, width, height, 0);
+        if (doof::is_failure(extracted)) {
+            return doof::Failure<std::shared_ptr<NativeImageError>>{doof::failure_error(extracted)};
+        }
+        std::shared_ptr<std::vector<uint8_t>> encoded;
+        std::string error;
+        if (!encodeWebP(*doof::success_value(extracted), width, height, quality, lossless, encoded, error)) {
+            return failure<std::shared_ptr<std::vector<uint8_t>>>(EncodeFailed, error);
+        }
+        return doof::Success<std::shared_ptr<std::vector<uint8_t>>>{encoded};
+    }
     const GUID* container = containerFormat(format);
     if (container == nullptr) {
         return failure<std::shared_ptr<std::vector<uint8_t>>>(UnsupportedFormat, "the requested image encoder is not available on this OS");

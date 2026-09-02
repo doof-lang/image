@@ -132,7 +132,7 @@ export class Image {
     options: ImageEncodeOptions = ImageEncodeOptions(),
   ): Result<none, ImageError> {
     quality := validateOptions(options) else error { return Failure { error: error } }
-    return mapNativeVoid(native.saveFile(path, format.value, quality, 0, 0, width(), height()))
+    return mapNativeVoid(native.saveFile(path, format.value, quality, options.lossless, 0, 0, width(), height()))
   }
 
   saveBlob(
@@ -140,7 +140,7 @@ export class Image {
     options: ImageEncodeOptions = ImageEncodeOptions(),
   ): Result<readonly byte[], ImageError> {
     quality := validateOptions(options) else error { return Failure { error: error } }
-    return mapNativeBytes(native.saveBlob(format.value, quality, 0, 0, width(), height()))
+    return mapNativeBytes(native.saveBlob(format.value, quality, options.lossless, 0, 0, width(), height()))
   }
 
   copyFrom(source: Image | ImageView, x: int, y: int): none {
@@ -220,7 +220,7 @@ export class ImageView {
     options: ImageEncodeOptions = ImageEncodeOptions(),
   ): Result<none, ImageError> {
     quality := validateOptions(options) else error { return Failure { error: error } }
-    return mapNativeVoid(image.native.saveFile(path, format.value, quality, x, y, viewWidth, viewHeight))
+    return mapNativeVoid(image.native.saveFile(path, format.value, quality, options.lossless, x, y, viewWidth, viewHeight))
   }
 
   saveBlob(
@@ -228,7 +228,7 @@ export class ImageView {
     options: ImageEncodeOptions = ImageEncodeOptions(),
   ): Result<readonly byte[], ImageError> {
     quality := validateOptions(options) else error { return Failure { error: error } }
-    return mapNativeBytes(image.native.saveBlob(format.value, quality, x, y, viewWidth, viewHeight))
+    return mapNativeBytes(image.native.saveBlob(format.value, quality, options.lossless, x, y, viewWidth, viewHeight))
   }
 
   copyFrom(source: Image | ImageView, x: int, y: int): none {

@@ -3,7 +3,7 @@
 `std/image` provides mutable raster images, immutable pixel snapshots,
 non-copying views, encoding, compositing, and resizing. Native backends use
 CoreGraphics and ImageIO on Apple platforms and Windows Imaging Component (WIC)
-on Windows.
+on Windows. Pinned libwebp sources provide WebP encoding on both backends.
 
 ## Pixel Model
 
@@ -38,8 +38,10 @@ as if the source were snapshotted first.
 or high quality.
 
 File extensions are ignored when saving; callers choose `ImageFormat`
-explicitly. `ImageEncodeOptions.quality` applies to JPEG and HEIC and is ignored
-by lossless formats.
+explicitly. `ImageEncodeOptions.quality` applies to JPEG, HEIC, and lossy WebP.
+Set `ImageEncodeOptions.lossless` to encode lossless WebP; it is ignored for
+other formats, and quality is ignored for lossless WebP. WebP output is
+single-frame.
 
 ## Platform Scope
 

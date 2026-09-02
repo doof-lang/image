@@ -1,4 +1,5 @@
 #include "native_image.hpp"
+#include "native_webp.hpp"
 
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
@@ -97,6 +98,7 @@ doof::Result<void, std::shared_ptr<NativeImageError>> NativeImage::saveFile(
     const std::string& path,
     int32_t format,
     double quality,
+    bool lossless,
     int32_t x,
     int32_t y,
     int32_t width,
@@ -105,6 +107,26 @@ doof::Result<void, std::shared_ptr<NativeImageError>> NativeImage::saveFile(
     @autoreleasepool {
         if (path.empty()) {
             return voidFailure(InvalidArgument, "image path must not be empty");
+        }
+        if (format == 5) {
+            auto extracted = extract(x, y, width, height, 0);
+            if (doof::is_failure(extracted)) {
+                return doof::Failure<std::shared_ptr<NativeImageError>>{doof::failure_error(extracted)};
+            }
+            std::shared_ptr<std::vector<uint8_t>> encoded;
+            std::string error;
+            if (!encodeWebP(*doof::success_value(extracted), width, height, quality, lossless, encoded, error)) {
+                return voidFailure(EncodeFailed, error);
+            }
+            NSString* nsPath = [NSString stringWithUTF8String:path.c_str()];
+            if (nsPath == nil) {
+                return voidFailure(InvalidArgument, "image path is not valid UTF-8");
+            }
+            NSData* data = [NSData dataWithBytes:encoded->data() length:encoded->size()];
+            if (data == nil || ![data writeToFile:nsPath atomically:YES]) {
+                return voidFailure(IoFailed, "could not write the encoded WebP image file");
+            }
+            return doof::Success<void>{};
         }
         CFStringRef type = formatType(format);
         if (!destinationSupports(type)) {
@@ -148,12 +170,25 @@ doof::Result<void, std::shared_ptr<NativeImageError>> NativeImage::saveFile(
 doof::Result<std::shared_ptr<std::vector<uint8_t>>, std::shared_ptr<NativeImageError>> NativeImage::saveBlob(
     int32_t format,
     double quality,
+    bool lossless,
     int32_t x,
     int32_t y,
     int32_t width,
     int32_t height
 ) const {
     @autoreleasepool {
+        if (format == 5) {
+            auto extracted = extract(x, y, width, height, 0);
+            if (doof::is_failure(extracted)) {
+                return doof::Failure<std::shared_ptr<NativeImageError>>{doof::failure_error(extracted)};
+            }
+            std::shared_ptr<std::vector<uint8_t>> encoded;
+            std::string error;
+            if (!encodeWebP(*doof::success_value(extracted), width, height, quality, lossless, encoded, error)) {
+                return failure<std::shared_ptr<std::vector<uint8_t>>>(EncodeFailed, error);
+            }
+            return doof::Success<std::shared_ptr<std::vector<uint8_t>>>{encoded};
+        }
         CFStringRef type = formatType(format);
         if (!destinationSupports(type)) {
             return failure<std::shared_ptr<std::vector<uint8_t>>>(UnsupportedFormat, "the requested image encoder is not available on this OS");
