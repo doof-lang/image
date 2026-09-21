@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "dependencies": [
+    {
+      "name": "libwebp",
+      "kind": "git",
+      "url": "https://github.com/webmproject/libwebp.git",
+      "destination": "vendor/libwebp",
+      "ref": "v1.6.0",
+      "commit": "4fa21912338357f89e4fd51cf2368325b59e9bd9",
+      "keep": ["COPYING", "PATENTS", "sharpyuv", "src/dec", "src/dsp", "src/enc", "src/utils", "src/webp"]
+    }
+  ]
+}
