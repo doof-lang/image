@@ -36,10 +36,10 @@ function check(value: bool): none {
 }
 
 export function testPixelValidationAndTransparentCreate(): none {
-  image := try! Image.create(2, 2)
+  image := Image.create(2, 2)!
   check(image.width() == 2)
   check(image.height() == 2)
-  extracted := try! image.pixelBytes()
+  extracted := image.pixelBytes()!
   expected: readonly byte[] := [
     0, 0, 0, 0,
     0, 0, 0, 0,
@@ -51,15 +51,15 @@ export function testPixelValidationAndTransparentCreate(): none {
 
 export function testImageCopiesPixelPayloadAndExtractionIsSnapshot(): none {
   original: readonly byte[] := [255, 0, 0, 255]
-  image := try! Image.fromPixelBytes(pixels(1, 1, original))
-  snapshot := try! image.pixelBytes()
+  image := Image.fromPixelBytes(pixels(1, 1, original))!
+  snapshot := image.pixelBytes()!
 
   blueBytes: readonly byte[] := [0, 0, 255, 255]
-  blue := try! Image.fromPixelBytes(pixels(1, 1, blueBytes))
+  blue := Image.fromPixelBytes(pixels(1, 1, blueBytes))!
   image.copyFrom(blue, 0, 0)
 
   assertBytes(snapshot.bytes, original)
-  assertBytes((try! image.pixelBytes()).bytes, blueBytes)
+  assertBytes((image.pixelBytes()!).bytes, blueBytes)
 }
 
 export function testViewsAreStrictNestedAndWriteThrough(): none {
@@ -69,15 +69,15 @@ export function testViewsAreStrictNestedAndWriteThrough(): none {
     0, 0, 255, 255,
     255, 255, 255, 255,
   ]
-  image := try! Image.fromPixelBytes(pixels(2, 2, baseBytes))
-  view := try! image.view(1, 0, 1, 2)
+  image := Image.fromPixelBytes(pixels(2, 2, baseBytes))!
+  view := image.view(1, 0, 1, 2)!
   check(view.width() == 1 && view.height() == 2)
-  nested := try! view.view(0, 1, 1, 1)
+  nested := view.view(0, 1, 1, 1)!
   white: readonly byte[] := [255, 255, 255, 255]
-  assertBytes((try! nested.pixelBytes()).bytes, white)
+  assertBytes((nested.pixelBytes()!).bytes, white)
 
   yellowBytes: readonly byte[] := [255, 255, 0, 255]
-  yellow := try! Image.fromPixelBytes(pixels(1, 1, yellowBytes))
+  yellow := Image.fromPixelBytes(pixels(1, 1, yellowBytes))!
   view.copyFrom(yellow, 0, 0)
   expected: readonly byte[] := [
     255, 0, 0, 255,
@@ -85,7 +85,7 @@ export function testViewsAreStrictNestedAndWriteThrough(): none {
     0, 0, 255, 255,
     255, 255, 255, 255,
   ]
-  assertBytes((try! image.pixelBytes()).bytes, expected)
+  assertBytes((image.pixelBytes()!).bytes, expected)
 
   check(failureKind(image.view(-1, 0, 1, 1)) == .OutOfBounds)
   check(failureKind(view.view(0, 0, 2, 1)) == .OutOfBounds)
@@ -97,50 +97,50 @@ export function testCopyClipsAndOverlappingCopyUsesSnapshot(): none {
     255, 0, 0, 255,
     0, 255, 0, 255,
   ]
-  source := try! Image.fromPixelBytes(pixels(2, 1, sourceBytes))
-  destination := try! Image.create(2, 1)
+  source := Image.fromPixelBytes(pixels(2, 1, sourceBytes))!
+  destination := Image.create(2, 1)!
   destination.copyFrom(source, -1, 0)
   clipped: readonly byte[] := [
     0, 255, 0, 255,
     0, 0, 0, 0,
   ]
-  assertBytes((try! destination.pixelBytes()).bytes, clipped)
+  assertBytes((destination.pixelBytes()!).bytes, clipped)
 
   overlapBytes: readonly byte[] := [
     255, 0, 0, 255,
     0, 255, 0, 255,
     0, 0, 255, 255,
   ]
-  overlap := try! Image.fromPixelBytes(pixels(3, 1, overlapBytes))
-  firstTwo := try! overlap.view(0, 0, 2, 1)
+  overlap := Image.fromPixelBytes(pixels(3, 1, overlapBytes))!
+  firstTwo := overlap.view(0, 0, 2, 1)!
   overlap.copyFrom(firstTwo, 1, 0)
   expectedOverlap: readonly byte[] := [
     255, 0, 0, 255,
     255, 0, 0, 255,
     0, 255, 0, 255,
   ]
-  assertBytes((try! overlap.pixelBytes()).bytes, expectedOverlap)
+  assertBytes((overlap.pixelBytes()!).bytes, expectedOverlap)
 }
 
 export function testPremultipliedSourceOver(): none {
   destinationBytes: readonly byte[] := [0, 0, 100, 128]
   sourceBytes: readonly byte[] := [100, 0, 0, 128]
-  destination := try! Image.fromPixelBytes(pixels(1, 1, destinationBytes))
-  source := try! Image.fromPixelBytes(pixels(1, 1, sourceBytes))
+  destination := Image.fromPixelBytes(pixels(1, 1, destinationBytes))!
+  source := Image.fromPixelBytes(pixels(1, 1, sourceBytes))!
   destination.sourceOver(source, 0, 0)
   expected: readonly byte[] := [100, 0, 50, 192]
-  assertBytes((try! destination.pixelBytes()).bytes, expected)
+  assertBytes((destination.pixelBytes()!).bytes, expected)
 }
 
 export function testStraightAlphaPixelBoundary(): none {
   straightBytes: readonly byte[] := [200, 100, 50, 128]
   straight := PixelBytes(1, 1, straightBytes, .Straight)
   check(straight.alphaMode == PixelAlphaMode.Straight)
-  image := try! Image.fromPixelBytes(straight)
+  image := Image.fromPixelBytes(straight)!
 
   premultiplied: readonly byte[] := [100, 50, 25, 128]
-  assertBytes((try! image.pixelBytes()).bytes, premultiplied)
-  roundTrip := try! image.pixelBytes(.Straight)
+  assertBytes((image.pixelBytes()!).bytes, premultiplied)
+  roundTrip := image.pixelBytes(.Straight)!
   requantizedStraight: readonly byte[] := [199, 100, 50, 128]
   assertBytes(roundTrip.bytes, requantizedStraight)
 }
@@ -150,16 +150,16 @@ export function testResizeCreatesIndependentImage(): none {
     255, 0, 0, 255,
     0, 0, 255, 255,
   ]
-  source := try! Image.fromPixelBytes(pixels(2, 1, sourceBytes))
-  resized := try! source.resize(4, 2, .Nearest)
+  source := Image.fromPixelBytes(pixels(2, 1, sourceBytes))!
+  resized := source.resize(4, 2, .Nearest)!
   check(resized.width() == 4 && resized.height() == 2)
 
-  clear := try! Image.create(1, 1)
+  clear := Image.create(1, 1)!
   resized.copyFrom(clear, 0, 0)
-  assertBytes((try! source.pixelBytes()).bytes, sourceBytes)
+  assertBytes((source.pixelBytes()!).bytes, sourceBytes)
 
-  view := try! source.view(1, 0, 1, 1)
-  viewResize := try! view.resize(3, 2, ImageResampling.HighQuality)
+  view := source.view(1, 0, 1, 1)!
+  viewResize := view.resize(3, 2, ImageResampling.HighQuality)!
   check(viewResize.width() == 3 && viewResize.height() == 2)
   check(failureKind(source.resize(0, 2)) == .InvalidArgument)
 }
@@ -169,27 +169,27 @@ export function testLosslessBlobRoundTripsAndViewEncoding(): none {
     255, 0, 0, 255,
     0, 255, 0, 255,
   ]
-  source := try! Image.fromPixelBytes(pixels(2, 1, sourceBytes))
+  source := Image.fromPixelBytes(pixels(2, 1, sourceBytes))!
 
-  png := try! source.saveBlob(.Png)
-  pngRoundTrip := try! Image.loadBlob(png)
-  assertBytes((try! pngRoundTrip.pixelBytes()).bytes, sourceBytes)
+  png := source.saveBlob(.Png)!
+  pngRoundTrip := Image.loadBlob(png)!
+  assertBytes((pngRoundTrip.pixelBytes()!).bytes, sourceBytes)
 
-  tiff := try! source.saveBlob(.Tiff)
-  tiffRoundTrip := try! Image.loadBlob(tiff)
-  assertBytes((try! tiffRoundTrip.pixelBytes()).bytes, sourceBytes)
+  tiff := source.saveBlob(.Tiff)!
+  tiffRoundTrip := Image.loadBlob(tiff)!
+  assertBytes((tiffRoundTrip.pixelBytes()!).bytes, sourceBytes)
 
-  greenView := try! source.view(1, 0, 1, 1)
-  cropped := try! Image.loadBlob(try! greenView.saveBlob(ImageFormat.Png))
+  greenView := source.view(1, 0, 1, 1)!
+  cropped := Image.loadBlob(greenView.saveBlob(ImageFormat.Png)!)!
   check(cropped.width() == 1 && cropped.height() == 1)
   green: readonly byte[] := [0, 255, 0, 255]
-  assertBytes((try! cropped.pixelBytes()).bytes, green)
+  assertBytes((cropped.pixelBytes()!).bytes, green)
 }
 
 function checkOptionalEncoder(image: Image, format: ImageFormat): none {
   case image.saveBlob(format) {
     success: Success -> {
-      decoded := try! Image.loadBlob(success.value)
+      decoded := Image.loadBlob(success.value)!
       check(decoded.width() == image.width() && decoded.height() == image.height())
     }
     failure: Failure -> {
@@ -205,7 +205,7 @@ export function testCuratedLossyAndGifEncoders(): none {
     0, 0, 255, 255,
     255, 255, 255, 255,
   ]
-  image := try! Image.fromPixelBytes(pixels(2, 2, sourceBytes))
+  image := Image.fromPixelBytes(pixels(2, 2, sourceBytes))!
   checkOptionalEncoder(image, .Jpeg)
   checkOptionalEncoder(image, .Heic)
   checkOptionalEncoder(image, .Gif)
@@ -216,9 +216,9 @@ export function testWebPEncodingAndLosslessRoundTrip(): none {
     255, 0, 0, 255,
     64, 32, 16, 128,
   ]
-  image := try! Image.fromPixelBytes(pixels(2, 1, sourceBytes))
+  image := Image.fromPixelBytes(pixels(2, 1, sourceBytes))!
 
-  lossy := try! image.saveBlob(.WebP, ImageEncodeOptions { quality: 0.8 })
+  lossy := image.saveBlob(.WebP, ImageEncodeOptions { quality: 0.8 })!
   check(lossy.length >= 12)
   signature: readonly byte[] := [82, 73, 70, 70, 87, 69, 66, 80]
   actualSignature: readonly byte[] := [
@@ -226,32 +226,32 @@ export function testWebPEncodingAndLosslessRoundTrip(): none {
     lossy[8], lossy[9], lossy[10], lossy[11],
   ]
   assertBytes(actualSignature, signature)
-  lossyRoundTrip := try! Image.loadBlob(lossy)
+  lossyRoundTrip := Image.loadBlob(lossy)!
   check(lossyRoundTrip.width() == 2 && lossyRoundTrip.height() == 1)
 
-  lossless := try! image.saveBlob(.WebP, ImageEncodeOptions { lossless: true })
-  losslessRoundTrip := try! Image.loadBlob(lossless)
-  assertBytes((try! losslessRoundTrip.pixelBytes()).bytes, sourceBytes)
+  lossless := image.saveBlob(.WebP, ImageEncodeOptions { lossless: true })!
+  losslessRoundTrip := Image.loadBlob(lossless)!
+  assertBytes((losslessRoundTrip.pixelBytes()!).bytes, sourceBytes)
 }
 
 export function testExplicitFormatFileRoundTrip(): none {
   sourceBytes: readonly byte[] := [10, 20, 30, 255]
-  image := try! Image.fromPixelBytes(pixels(1, 1, sourceBytes))
+  image := Image.fromPixelBytes(pixels(1, 1, sourceBytes))!
   path := join([tempDirectory(), "std-image-explicit-format.data"])
-  try! image.saveFile(path, .Png)
-  loaded := try! Image.loadFile(path)
-  assertBytes((try! loaded.pixelBytes()).bytes, sourceBytes)
-  try! remove(path)
+  image.saveFile(path, .Png)!
+  loaded := Image.loadFile(path)!
+  assertBytes((loaded.pixelBytes()!).bytes, sourceBytes)
+  remove(path)!
 
   webpPath := join([tempDirectory(), "std-image-explicit-webp.data"])
-  try! image.saveFile(webpPath, .WebP, ImageEncodeOptions { lossless: true })
-  loadedWebP := try! Image.loadFile(webpPath)
-  assertBytes((try! loadedWebP.pixelBytes()).bytes, sourceBytes)
-  try! remove(webpPath)
+  image.saveFile(webpPath, .WebP, ImageEncodeOptions { lossless: true })!
+  loadedWebP := Image.loadFile(webpPath)!
+  assertBytes((loadedWebP.pixelBytes()!).bytes, sourceBytes)
+  remove(webpPath)!
 }
 
 export function testEncodingAndDecodeErrors(): none {
-  image := try! Image.create(1, 1)
+  image := Image.create(1, 1)!
   invalidOptions := ImageEncodeOptions { quality: 1.1 }
   check(failureKind(image.saveBlob(.Png, invalidOptions)) == .InvalidArgument)
 
@@ -263,16 +263,16 @@ export function testEncodingAndDecodeErrors(): none {
 
 export function testDecodeAppliesOrientationMetadata(): none {
   // A 2x1 TIFF containing red then blue, tagged EXIF orientation 6 (90Â° clockwise).
-  encoded := try! decodeBase64(
+  encoded := decodeBase64(
     "TU0AKgAAABD/AAD/AAD//wAPAQAAAwAAAAEAAgAAAQEAAwAAAAEAAQAAAQIAAwAAAAQAAADKAQMAAwAAAAEAAQAAAQYAAwAAAAEAAgAAAQoAAwAAAAEAAQAAAREABAAAAAEAAAAIARIAAwAAAAEABgAAARUAAwAAAAEABAAAARYAAwAAAAEAAQAAARcABAAAAAEAAAAIARwAAwAAAAEAAQAAASgAAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAQAAADSAAAAAAAIAAgACAAIAAEAAQABAAE="
-  )
-  image := try! Image.loadBlob(encoded)
+  )!
+  image := Image.loadBlob(encoded)!
   check(image.width() == 1 && image.height() == 2)
   expected: readonly byte[] := [
     255, 0, 0, 255,
     0, 0, 255, 255,
   ]
-  assertBytes((try! image.pixelBytes()).bytes, expected)
+  assertBytes((image.pixelBytes()!).bytes, expected)
 }
 
 export function testVerticalPngRoundTripPreservesTopLeftRows(): none {
@@ -280,7 +280,7 @@ export function testVerticalPngRoundTripPreservesTopLeftRows(): none {
     255, 0, 0, 255,
     0, 0, 255, 255,
   ]
-  source := try! Image.fromPixelBytes(pixels(1, 2, sourceBytes))
-  decoded := try! Image.loadBlob(try! source.saveBlob(.Png))
-  assertBytes((try! decoded.pixelBytes()).bytes, sourceBytes)
+  source := Image.fromPixelBytes(pixels(1, 2, sourceBytes))!
+  decoded := Image.loadBlob(source.saveBlob(.Png)!)!
+  assertBytes((decoded.pixelBytes()!).bytes, sourceBytes)
 }
